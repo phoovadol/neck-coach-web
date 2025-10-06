@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neck Exercise - Office Syndrome Relief</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="card">
+    <h1>บริหารคอ — ลดอาการ Office Syndrome (ด้วยกล้อง)</h1>
+    <p class="lead">เวอร์ชันใช้กล้อง: แค่เปิดกล้องแล้วทำตามท่า (Chin Tuck)</p>
+
+    <div class="controls">
+      <button id="startBtn">เริ่มออกกำลังกาย</button>
+      <button id="stopBtn" class="secondary" disabled>หยุด</button>
+      <button id="resetCalBtn" class="secondary" disabled>รีเซ็ต Calibration</button>
+      <button id="demoBtn" class="warn">ใช้งานแบบทดสอบ (Demo)</button>
+    </div>
+
+    <div class="status" id="status">สถานะ: <span class="muted">รอเริ่ม</span></div>
+    <div class="count" id="count">0</div>
+
+    <div class="canvas-wrap">
+      <video id="video" playsinline autoplay class="hidden"></video>
+      <canvas id="outputCanvas"></canvas>
+    </div>
+
+    <p class="help">* ต้องรันบน <strong>HTTPS</strong> หรือ <strong>localhost</strong> เพื่อให้กล้องทำงาน</p>
+    <div id="errorBox" class="error hidden"></div>
+    <p class="small">หากกล้องถูกปฏิเสธ: ตรวจสอบการอนุญาตที่ไอคอนกล้องในแถบ URL แล้วรีเฟรช</p>
+  </div>
+
+  <!-- MediaPipe -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
