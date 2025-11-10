@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Neck Exercise Coach</title>
+
+  <!-- โหลด Mediapipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
 
   <style>
     body { font-family: sans-serif; text-align: center; background: #eef2f3; }
@@ -16,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h2>🧘‍♀️ Neck  Coach</h2>
+  <h2>🧘‍♀️ Neck Exercise Coach</h2>
   <video id="video" width="640" height="480" autoplay></video>
 
   <div id="controls">
@@ -39,6 +41,7 @@
     let currentExercise = 'chin_tuck';
     let count = 0;
     let detecting = false;
+    let lastState = false;
 
     document.getElementById('exercise').addEventListener('change', e => {
       currentExercise = e.target.value;
@@ -53,26 +56,69 @@
       video.srcObject = stream;
     });
 
-    const pose = new Pose.Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
-    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true });
-    pose.onResults(results => {
+    // ✅ ใช้ FaceMesh (จับเฉพาะศีรษะ)
+    const faceMesh = new FaceMesh.FaceMesh({
+      locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    faceMesh.onResults(results => {
       if (!detecting) return;
 
-      const nose = results.poseLandmarks?.[0];
-      const leftEar = results.poseLandmarks?.[7];
-      const rightEar = results.poseLandmarks?.[8];
-      if (!nose || !leftEar || !rightEar) return;
+      const landmarks = results.multiFaceLandmarks?.[0];
+      if (!landmarks) return;
 
-      let angle = rightEar.y - leftEar.y; // ค่าความต่างแนวดิ่งของหู
-      if (currentExercise === 'side_stretch' && Math.abs(angle) > 0.05) { 
+      // จุดหลักบนหน้า (ประมาณ)
+      const nose = landmarks[1];
+      const leftEar = landmarks[234];
+      const rightEar = landmarks[454];
+      const chin = landmarks[152];
+      const forehead = landmarks[10];
+
+      let triggered = false;
+
+      // 💆‍♂️ Chin Tuck: คางถอยเข้าหา -> ค่าระยะคางกับหน้าผากลดลง
+      if (currentExercise === 'chin_tuck') {
+        const diff = Math.abs(chin.z - forehead.z);
+        if (diff < 0.015) triggered = true;
+      }
+
+      // ↔️ Side Stretch: เอียงศีรษะซ้าย/ขวา
+      else if (currentExercise === 'side_stretch') {
+        const angle = rightEar.y - leftEar.y;
+        if (Math.abs(angle) > 0.05) triggered = true;
+      }
+
+      // 🔄 Rotation: หันซ้ายหรือขวา
+      else if (currentExercise === 'rotation') {
+        const horizontal = rightEar.x - leftEar.x;
+        if (Math.abs(horizontal) < 0.35) triggered = true;
+      }
+
+      // ตรวจจับ transition (จาก false → true เท่านั้น)
+      if (triggered && !lastState) {
         count++;
         beep.play();
         counter.textContent = `ครั้งที่ทำสำเร็จ: ${count}`;
       }
-      // สามารถเพิ่ม logic สำหรับ chin_tuck, rotation ต่อได้
+
+      lastState = triggered;
     });
 
-    const camera = new Camera(video, { onFrame: async () => await pose.send({ image: video }), width: 640, height: 480 });
+    const camera = new Camera(video, {
+      onFrame: async () => {
+        await faceMesh.send({ image: video });
+      },
+      width: 640,
+      height: 480
+    });
+
     camera.start();
   </script>
 </body>
