@@ -1,38 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* ===== Root Variables ===== */
 :root {
-  --bg: #f5f5f5;
+  --bg: #f7f9fc;
   --primary: #2b8cff;
   --ok: #27ae60;
-  --muted: #777;
+  --muted: #6b7280;
+  --card-radius: 16px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
+/* ===== Layout ===== */
 html, body {
   height: 100%;
   margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans', Helvetica, Arial;
-}
-
-body {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
+  color: #111;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 28px;
 }
 
+/* ===== Card Container ===== */
 .card {
   width: 100%;
   max-width: 520px;
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 6px 18px rgba(20,20,40,0.06);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+}
+
+/* ===== Headings ===== */
 h1 {
-  margin: 6px 0;
-  color: #1f2937;
-  font-size: 20px;
+  margin: 10px 0;
+  font-size: 26px;
   text-align: center;
+  background: linear-gradient(90deg, #2b8cff, #6c63ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
 }
 
 p.lead {
@@ -41,6 +57,7 @@ p.lead {
   text-align: center;
 }
 
+/* ===== Buttons ===== */
 .controls {
   display: flex;
   gap: 8px;
@@ -50,18 +67,33 @@ p.lead {
 }
 
 button {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 0;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
   background: var(--primary);
   color: white;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(43, 140, 255, 0.3);
+  transition: all 0.2s ease-in-out;
 }
 
-button.secondary { background: #6b7280; }
-button.warn { background: #f59e0b; }
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(43, 140, 255, 0.35);
+}
 
+button.secondary {
+  background: #4b5563;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+button.warn {
+  background: #f59e0b;
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+
+/* ===== Status Display ===== */
 .status {
   height: 36px;
   display: flex;
@@ -71,8 +103,12 @@ button.warn { background: #f59e0b; }
   font-weight: 600;
 }
 
-.status .muted { color: var(--muted); font-weight: 500; }
+.status .muted {
+  color: var(--muted);
+  font-weight: 500;
+}
 
+/* ===== Count ===== */
 .count {
   font-size: 42px;
   font-weight: 700;
@@ -81,6 +117,7 @@ button.warn { background: #f59e0b; }
   margin: 12px 0;
 }
 
+/* ===== Canvas Area ===== */
 .canvas-wrap {
   display: flex;
   justify-content: center;
@@ -93,6 +130,7 @@ canvas {
   background: #000;
 }
 
+/* ===== Text Helpers ===== */
 .help {
   font-size: 13px;
   color: var(--muted);
@@ -110,4 +148,14 @@ canvas {
   color: var(--muted);
 }
 
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
+
+/* ===== Footer ===== */
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}

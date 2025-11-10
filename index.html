@@ -1,41 +1,79 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neck Exercise - Office Syndrome Relief</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Neck Exercise Coach</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #eef2f3; }
+    video { border-radius: 12px; margin-top: 10px; }
+    #controls { margin: 15px; }
+    select, button { padding: 8px; margin: 5px; border-radius: 8px; }
+    #counter { font-size: 20px; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <div class="card">
-    <h1>บริหารคอ — ลดอาการ Office Syndrome (ด้วยกล้อง)</h1>
-    <p class="lead">เวอร์ชันใช้กล้อง: แค่เปิดกล้องแล้วทำตามท่า (Chin Tuck)</p>
+  <h2>🧘‍♀️ Neck  Coach</h2>
+  <video id="video" width="640" height="480" autoplay></video>
 
-    <div class="controls">
-      <button id="startBtn">เริ่มออกกำลังกาย</button>
-      <button id="stopBtn" class="secondary" disabled>หยุด</button>
-      <button id="resetCalBtn" class="secondary" disabled>รีเซ็ต Calibration</button>
-      <button id="demoBtn" class="warn">ใช้งานแบบทดสอบ (Demo)</button>
-    </div>
-
-    <div class="status" id="status">สถานะ: <span class="muted">รอเริ่ม</span></div>
-    <div class="count" id="count">0</div>
-
-    <div class="canvas-wrap">
-      <video id="video" playsinline autoplay class="hidden"></video>
-      <canvas id="outputCanvas"></canvas>
-    </div>
-
-    <p class="help">* ต้องรันบน <strong>HTTPS</strong> หรือ <strong>localhost</strong> เพื่อให้กล้องทำงาน</p>
-    <div id="errorBox" class="error hidden"></div>
-    <p class="small">หากกล้องถูกปฏิเสธ: ตรวจสอบการอนุญาตที่ไอคอนกล้องในแถบ URL แล้วรีเฟรช</p>
+  <div id="controls">
+    <select id="exercise">
+      <option value="chin_tuck">Chin Tuck</option>
+      <option value="side_stretch">Side Neck Stretch</option>
+      <option value="rotation">Neck Rotation</option>
+    </select>
+    <button id="startBtn">เริ่ม</button>
+    <button id="stopBtn">หยุด</button>
   </div>
 
-  <!-- MediaPipe -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <div id="counter">ครั้งที่ทำสำเร็จ: 0</div>
+  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
-  <script src="script.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const counter = document.getElementById('counter');
+    const beep = document.getElementById('beep');
+    let currentExercise = 'chin_tuck';
+    let count = 0;
+    let detecting = false;
+
+    document.getElementById('exercise').addEventListener('change', e => {
+      currentExercise = e.target.value;
+      count = 0;
+      counter.textContent = "ครั้งที่ทำสำเร็จ: 0";
+    });
+
+    document.getElementById('startBtn').addEventListener('click', () => detecting = true);
+    document.getElementById('stopBtn').addEventListener('click', () => detecting = false);
+
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+    });
+
+    const pose = new Pose.Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}` });
+    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true });
+    pose.onResults(results => {
+      if (!detecting) return;
+
+      const nose = results.poseLandmarks?.[0];
+      const leftEar = results.poseLandmarks?.[7];
+      const rightEar = results.poseLandmarks?.[8];
+      if (!nose || !leftEar || !rightEar) return;
+
+      let angle = rightEar.y - leftEar.y; // ค่าความต่างแนวดิ่งของหู
+      if (currentExercise === 'side_stretch' && Math.abs(angle) > 0.05) { 
+        count++;
+        beep.play();
+        counter.textContent = `ครั้งที่ทำสำเร็จ: ${count}`;
+      }
+      // สามารถเพิ่ม logic สำหรับ chin_tuck, rotation ต่อได้
+    });
+
+    const camera = new Camera(video, { onFrame: async () => await pose.send({ image: video }), width: 640, height: 480 });
+    camera.start();
+  </script>
 </body>
 </html>
